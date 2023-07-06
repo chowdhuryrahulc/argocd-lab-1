@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-app-deployment
+  name: myapp
 spec:
-  replicas: 3
   selector:
     matchLabels:
-      app: my-app
+      app: myapp
+  replicas: 2
   template:
     metadata:
       labels:
-        app: my-app
+        app: myapp
     spec:
       containers:
-      - name: my-app-container
+      - name: myapp
         image: public.ecr.aws/h4m9f1p4/green
         ports:
         - containerPort: 8080
