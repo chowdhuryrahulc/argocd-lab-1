@@ -1,23 +1,28 @@
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1alpha1            # check for this, latest as done in argo-rollout-1 lab
 kind: Application
 metadata:
   name: myapp-argo-application
-  namespace: argocd
+  namespace: argocd                         # will be deployed in argocd namespace
 spec:
-  project: default
+  project: default                          # you can group multiple application in a project
 
+# Source of github repo, and destination where the cluster is located
   source:
+    # repoURL: https://gitlab.com/nanuchi/argocd-app-config.git   # if error, use this as url
     repoURL: https://github.com/chowdhuryrahulc/argocd-lab-1.git
-    targetRevision: HEAD
-    path: dev
+    targetRevision: HEAD                    # HEAD means the last commit in the github repo
+    path: dev                               # path/folder where deployment.yaml, service.yaml and other yamls is stored
   destination: 
-    server: https://kubernetes.default.svc
-    namespace: myapp
+    server: https://kubernetes.default.svc  # address of k8s cluster / DNS name of EKS  # !change this
+    # since we are puting ArgoAgent inside our cluster, "https://kubernetes.default.svc" will be the location (check this)
+    # and if we are managing some other cluster in some other region (like us-east-1), like in Multi-Cluster in same env type, change this accodingly. Like externally controlling some other cluster
+    # "default" is the service where k8s api-server is located. How to get this? use cmd: kubectl get svc. The namespace where a service named "kubernetes" is located
+    namespace: myapp                        # the namespace where k8s will apply deployment.yaml, svc.yaml nd other yamls inside "dev" folder
 
   syncPolicy:
     syncOptions:
-    - CreateNamespace=true
+    - CreateNamespace=true                  # means if "myapp" ns is not found in the cluster, create that ns
 
-    automated:
-      selfHeal: true
-      prune: true
+    automated:                              # means argo-agent will ping the github every 3min, and if github code changes it will automatically update cluster. automated means automatic sync
+      selfHeal: true                        # selfHeal true will undo any manual overwrite in the cluster. (So if someone does "kubectl apply or helm install" manually, and it is not updated in github repo, it will be undo)
+      prune: true                           # prune = true means if we delete something in git repo, it will also be deleted in the cluster
